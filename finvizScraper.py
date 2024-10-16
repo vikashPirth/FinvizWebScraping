@@ -6,6 +6,19 @@ from io import StringIO
 
 
 
+def getTotalPages(soup):
+
+    try:
+        paginationTags = soup.find(class_ = "body-table screener_pagination").find_all('a')
+    except Exception as e:
+        print("Page is empyt")
+        return
+    totalPages = (len(paginationTags) - 1)
+    if (totalPages == 0):
+        return 1
+    else:
+        return totalPages
+
 
 def getWebpage():
     url = "https://finviz.com/screener.ashx?v=121&f=cap_large,fa_div_o5&ft=4"
@@ -13,6 +26,14 @@ def getWebpage():
     reponse = requests.get(url=url, headers=headers)
     soup  = BeautifulSoup(reponse.content, 'html.parser')
     
-    table = soup.find('table', class_='styled-table-new is-rounded is-tabular-nums w-full screener_table')
-    
-    print(table)
+    numPage = getTotalPages(soup=soup)
+    tickerNumber = 1
+    for numPage in range(numPage):
+        response = requests.get(url= url+f"&r={tickerNumber}", headers=headers)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        table = soup.find('table', class_='styled-table-new is-rounded is-tabular-nums w-full screener_table')
+        table_html = StringIO(str(table))
+        pdData = pd.read_html(table_html)
+        tickerNumber+=20
+
+getWebpage()
